@@ -7,4 +7,6 @@ export default defineConfig({
     deviceName: /Pixel/,
 
     timeout: 10000,
+
+    testIgnore: '**/_*.test.ts',
 });
