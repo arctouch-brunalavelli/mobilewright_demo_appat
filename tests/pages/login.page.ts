@@ -1,13 +1,30 @@
 import type { Locator, Screen } from 'mobilewright';
 
 /**
- * Page Object for the ArcTouch demo app login screen.
+ * Page Object for the ArcTouch demo app login screen (legacy APK).
  *
- * Selector strategy (in priority order):
- *   1. getByTestId — Android resource-id (most stable across copy/UI changes)
- *   2. getByLabel  — content-desc fallback (used for elements without a resource-id
- *                    or where the visible text is the most meaningful identifier)
- *   3. getByText   — visible text (only for static headings/titles)
+ * Ground truth was captured via `tests/_inspect.test.ts` (see
+ * `test-results/inspect/tree.txt`). Key facts:
+ *
+ *   - mobilecli reports Android types as fully-qualified class names
+ *     (e.g. `android.widget.EditText`, not `EditText`). This means
+ *     `getByType('EditText')` and `getByRole('textfield')` do NOT match on
+ *     this driver. Always prefer `getByLabel`.
+ *
+ *   - The two EditText inputs DO expose content-desc as a multi-line label:
+ *       Email:    "Email input field\nEmail"
+ *       Password: "Password input field\nPassword"
+ *     We match the content-desc prefix with substring (`{ exact: false }`).
+ *
+ *   - The instructional banner has no separate dismiss element in the tree.
+ *     Its own content-desc documents the dismissal gesture:
+ *     "Long press to dismiss all hints." We use `longPress()` accordingly.
+ *
+ *   - The ArcTouch logo appears twice (ImageView + outer View wrapper).
+ *     We pin it with `.first()` to keep the locator deterministic.
+ *
+ * Selector priority: getByLabel (exact when unique, substring otherwise) →
+ * getByText (for static headings) → ordinal indexing as a last resort.
  */
 export class LoginPage {
   /** Default credentials shown in the in-app instructional banner. */
@@ -16,20 +33,19 @@ export class LoginPage {
 
   constructor(private readonly screen: Screen) {}
 
-  logo(): Locator               { return this.screen.getByTestId('login_logo'); }
-  welcomeHeading(): Locator     { return this.screen.getByText('Welcome'); }
-  subtitle(): Locator           { return this.screen.getByText('Sign in to continue'); }
+  logo(): Locator               { return this.screen.getByLabel('ArcTouch logo').first(); }
+  welcomeHeading(): Locator     { return this.screen.getByLabel('Welcome'); }
+  subtitle(): Locator           { return this.screen.getByLabel('Sign in to continue'); }
 
-  hintBanner(): Locator         { return this.screen.getByTestId('instructional_banner'); }
-  dismissHintButton(): Locator  { return this.screen.getByTestId('instructional_banner_dismiss_button'); }
+  hintBanner(): Locator         { return this.screen.getByLabel('Instructional hint:', { exact: false }); }
 
-  emailInput(): Locator         { return this.screen.getByTestId('login_email_input'); }
-  passwordInput(): Locator      { return this.screen.getByTestId('login_password_input'); }
-  passwordToggle(): Locator     { return this.screen.getByTestId('login_toggle_password_visibility'); }
+  emailInput(): Locator         { return this.screen.getByLabel('Email input field', { exact: false }); }
+  passwordInput(): Locator      { return this.screen.getByLabel('Password input field', { exact: false }); }
+  passwordToggle(): Locator     { return this.screen.getByLabel('Show password'); }
 
-  signInButton(): Locator       { return this.screen.getByTestId('login_sign_in_button'); }
-  forgotPasswordLink(): Locator { return this.screen.getByTestId('login_forgot_password_link'); }
-  signUpLink(): Locator         { return this.screen.getByTestId('login_create_account_link'); }
+  signInButton(): Locator       { return this.screen.getByLabel('Sign in button'); }
+  forgotPasswordLink(): Locator { return this.screen.getByLabel('Forgot password link'); }
+  signUpLink(): Locator         { return this.screen.getByLabel('Create account link'); }
 
   async fillCredentials(email: string, password: string): Promise<void> {
     await this.emailInput().fill(email);
@@ -44,9 +60,14 @@ export class LoginPage {
     await this.signInButton().tap();
   }
 
+  /**
+   * The legacy APK does not expose the dismiss icon as a separate node.
+   * The banner's own content-desc documents `Long press to dismiss all hints`,
+   * so we long-press the banner itself.
+   */
   async dismissHintIfVisible(): Promise<void> {
     if (await this.hintBanner().isVisible()) {
-      await this.dismissHintButton().tap();
+      await this.hintBanner().longPress();
     }
   }
 }

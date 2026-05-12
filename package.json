@@ -13,5 +13,8 @@
   "dependencies": {
     "@mobilewright/test": "^0.0.33",
     "mobilewright": "^0.0.33"
+  },
+  "devDependencies": {
+    "@types/node": "^25.7.0"
   }
 }

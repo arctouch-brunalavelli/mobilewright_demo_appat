@@ -21,14 +21,22 @@ test.describe('Login screen', () => {
     await login.dismissHintIfVisible();
     await login.signIn();
 
-    await expect(login.signInButton()).not.toBeVisible({ timeout: 10_000 });
+    // Brief settle to let the post-tap transition stabilise and avoid the
+    // transient mobilecli "no XML content found in uiautomator dump" error
+    // while the activity is animating.
+    await new Promise((r) => setTimeout(r, 1500));
+
+    await expect(login.signInButton()).not.toBeVisible({ timeout: 15_000 });
   });
 
   test('dismisses the instructional banner', async ({ screen }) => {
     const login = new LoginPage(screen);
 
     await expect(login.hintBanner()).toBeVisible();
-    await login.dismissHintButton().tap();
+    // The legacy APK exposes no separate X icon; the banner's content-desc
+    // documents `Long press to dismiss all hints`, which is the only working
+    // gesture (`tap()` is a no-op here).
+    await login.hintBanner().longPress();
     await expect(login.hintBanner()).not.toBeVisible();
   });
 

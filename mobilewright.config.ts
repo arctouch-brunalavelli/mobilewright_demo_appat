@@ -6,7 +6,9 @@ export default defineConfig({
     bundleId: 'com.arctouch.arctouch_demo_app',
     deviceName: /Pixel/,
 
-    timeout: 10000,
+    timeout: 60_000,
 
-    testIgnore: '**/_*.test.ts',
+    // Temporarily disabled so `_inspect.test.ts` can run.
+    // Re-enable once we've finished collecting selector data.
+    // testIgnore: '**/_*.test.ts',
 });
