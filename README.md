@@ -36,7 +36,7 @@ mobilewright-demo/
 │   ├── navigation.test.ts        # placeholder for top-level navigation specs
 │   └── pages/
 │       ├── login.page.ts         # Page Object: selectors + composite actions for login
-│       └── home.page.ts          # placeholder for home screen
+│       └── shop.page.ts          # Page Object for the Shop tab (post-login landing)
 └── test-results/                 # generated artifacts (screenshots on failure, etc.)
 ```
 
@@ -156,7 +156,7 @@ Minimal Page Object example:
 ```typescript
 import type { Locator, Screen } from 'mobilewright';
 
-export class HomePage {
+export class ShopPage {
   constructor(private readonly screen: Screen) {}
 
   greeting(): Locator { return this.screen.getByLabel('Welcome banner'); }
@@ -170,11 +170,11 @@ Minimal test example:
 
 ```typescript
 import { test, expect } from '@mobilewright/test';
-import { HomePage } from './pages/home.page';
+import { ShopPage } from './pages/shop.page';
 
 test('greeting is visible after login', async ({ screen }) => {
-  const home = new HomePage(screen);
-  await expect(home.greeting()).toBeVisible();
+  const shop = new ShopPage(screen);
+  await expect(shop.greeting()).toBeVisible();
 });
 ```
 
@@ -192,7 +192,7 @@ test('greeting is visible after login', async ({ screen }) => {
 ## Roadmap
 
 - Bring the login suite to green (selector strategy fix in progress).
-- Build out `home.page.ts` + a real "left login → home rendered" assertion in the happy path.
+- Build out `shop.page.ts` + a real "left login → Shop rendered" assertion in the happy path.
 - Add show/hide password toggle, forgot-password navigation, sign-up navigation, and negative-credential tests.
 - Wire `npm test` to `mobilewright test` and add an `npm run test:report` script.
 - Add a CI workflow that boots an emulator and runs the suite.
